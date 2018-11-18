@@ -1,0 +1,31 @@
+{{template "header"}}
+<div class="container">
+    <div>
+        <main>
+            {{range .Users}}
+                <section>
+                    <div>
+                        <button class="btn btn-primary" id="{{.UserName}}">Follow</button>
+                        <span>{{.UserName}}</span>           
+                    </div>
+                    <br>
+                </section>
+            {{end}}
+        </main>
+    </div>
+</div>
+<script>
+    var button_collections = document.getElementsByClassName("btn btn-primary");
+    var buttons = Array.from(button_collections);
+    buttons.forEach(function(element) {
+        element.addEventListener('click', function() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/follow');
+            xhr.send(element.id);
+            xhr.addEventListener('readystatechange', function(){
+                // alert("success");
+            });
+        });
+    });
+</script>
+{{template "footer"}}

@@ -3,6 +3,8 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -40,6 +42,8 @@ func validate(w http.ResponseWriter, r *http.Request, flag bool) *User {
 
 func signUp(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
+		t, _ := template.ParseFiles("template/signup.html", "template/headerFooter.html")
+		t.Execute(w, nil)
 	} else {
 		r.ParseForm()
 		username := r.Form["username"][0]
@@ -60,10 +64,20 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkUserName(w http.ResponseWriter, r *http.Request) {
+	bs, err := ioutil.ReadAll(r.Body)
+	username := string(bs)
+	if uList[username] != nil || err != nil {
+		fmt.Fprint(w, "false")
+		return
+	} else {
+		fmt.Fprint(w, "true")
+	}
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
+		t, _ := template.ParseFiles("template/login.html", "template/headerFooter.html")
+		t.Execute(w, nil)
 	} else {
 		r.ParseForm()
 		username := r.Form["username"][0]
@@ -90,6 +104,8 @@ func post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "GET" {
+		t, _ := template.ParseFiles("template/post.html", "template/headerFooter.html")
+		t.Execute(w,  nil)
 	} else {
 		r.ParseForm()
 		message := r.Form["message"][0]
@@ -108,6 +124,17 @@ func view(w http.ResponseWriter, r *http.Request) {
 	if client == nil {
 		return
 	}
+	posts := make([]Post, 0)
+	for _, user := range client.Follows {
+		for _, post := range user.Posts {
+			posts = append(posts, *post)
+		}
+	}
+	for _, post := range client.Posts {
+		posts = append(posts, *post)
+	}
+	t, _ := template.ParseFiles("template/view.html", "template/headerFooter.html")
+	t.Execute(w, map[string]interface{}{"Posts": posts})
 }
 
 func follow(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +143,15 @@ func follow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "GET" {
+		users := make([]User, 0)
+		for _, v := range uList {
+			// Show all the users who are not followed by client.
+			if v != client && client.Follows[v.UserName] == nil {
+				users = append(users, *v)
+			}
+		}
+		t, _ := template.ParseFiles("template/follow.html", "template/headerFooter.html")
+		t.Execute(w,  map[string]interface{}{"Users": users})
 	} else {
 		user, _ := ioutil.ReadAll(r.Body)
 		username := string(user)
@@ -132,6 +168,12 @@ func unfollow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "GET" {
+		users := make([]User, 0)
+		for _, user := range client.Follows {
+			users = append(users, *user)
+		}
+		t, _ := template.ParseFiles("template/unfollow.html", "template/headerFooter.html")
+		t.Execute(w,  map[string]interface{}{"Users": users})
 	} else {
 		user, _ := ioutil.ReadAll(r.Body)
 		username := string(user)

@@ -1,0 +1,17 @@
+{{template "header"}}
+<div class="container">
+    <div>
+        <main>
+        {{range .Posts}}
+            <section class="media border p-3 mb-3">
+                <div>
+                    <p class="post">{{.Msg}}</p>
+                    <p class="post-meta">{{.Time}}</p>
+                    <p class="post-meta">Post by {{.UserName}}</p>
+                </div>
+            </section>
+        {{end}}
+        </main>
+    </div>
+</div>
+{{template "footer"}}
