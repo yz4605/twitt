@@ -1,19 +1,19 @@
 {{template "header"}}
+{{$visibility := .}}
 <div class='container'>
     <form id="sign_up_form" action="/signup" method="post">
         <div class="form-group">
             <h1>Please Sign Up</h1>
             <label for="username">Username</label>
             <input type="text" class="form-control" id="username" name="username" aria-describedby="usernameHelp" placeholder="Enter Username">
-            <div class = "myerror" id = "user_error" style = "visibility:hidden">
-                This username has been registered
-            </div>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
             <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+            <div class = "myerror" id = "user_error" style = "visibility:{{$visibility}}">
+                This username is not permitted
+            </div>
         </div>
-        <br>
         <input id="sign_up_button" type="submit" class="btn btn-primary" value="Sign Up">
         <br/>
         <br/>
@@ -21,29 +21,4 @@
         <span>Already Have an Account?</span> <a href="login">Sign In Here</a>
     </form>
 </div>
-<script>
-    var form = document.querySelector('#sign_up_form');
-    var username = document.querySelector('#username');
-    // username must be unique.
-    username.addEventListener('input', function(){
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/checkUserName');
-        xhr.send(username.value);
-        xhr.addEventListener('readystatechange', function(){
-            if (xhr.readyState === 4) {
-                if (xhr.responseText == 'true') {
-                    document.getElementById("user_error").style.visibility = "hidden";
-                } else {
-                    document.getElementById("user_error").style.visibility = "visible";
-                }
-            }
-        });
-    });
-    form.addEventListener('submit', function(e){
-        if (document.getElementById("user_error").style.visibility == "visible") {
-            e.preventDefault();
-            return;
-        }
-    });
-</script>
 {{template "footer"}}

@@ -2,11 +2,11 @@
 <div class="container">
     <div>
         <main>
-            {{range .Users}}
+            {{range .Usernames}}
                 <section>
                     <div>
-                        <button class="btn btn-primary" id="{{.UserName}}">Follow</button>
-                        <span>{{.UserName}}</span>           
+                        <button class="btn btn-primary" id="{{.}}">Follow</button>
+                        <span>{{.}}</span>           
                     </div>
                     <br>
                 </section>
@@ -25,6 +25,7 @@
             xhr.addEventListener('readystatechange', function(){
                 // alert("success");
             });
+            location.reload();
         });
     });
 </script>
