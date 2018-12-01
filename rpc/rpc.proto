@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package pb;
+
+service TwittService {
+    rpc SignUp (InfoRequest) returns (SuccessReply) {}
+    rpc Login (InfoRequest) returns (SuccessReply) {}
+    rpc Posting (PostRequest) returns (SuccessReply) {}
+    rpc View (InfoRequest) returns (ViewReply) {}
+    rpc GetList (InfoRequest) returns (ListReply) {}
+    rpc Follow (FollowingRequest) returns (SuccessReply) {}
+    rpc UnFollow (FollowingRequest) returns (SuccessReply) {}
+}
+
+message InfoRequest {
+    string username = 1;
+    string password = 2;
+    string instruct = 3;
+}
+
+message Post {
+    string username = 1;
+    string content = 2;
+    string time = 3;   
+}
+
+message PostRequest {
+    Post post = 1;
+}
+
+message FollowingRequest {
+    string username = 1;
+    string following = 2;
+}
+
+message SuccessReply {
+    bool success = 1;
+}
+
+message ViewReply {
+    bool success = 1;
+    repeated Post posts = 2;
+}
+
+message ListReply {
+    bool success = 1;
+    repeated string list = 2;
+}
