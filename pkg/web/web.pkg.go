@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"context"
@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"twitt/rpc"
+	"twitt/pkg/rpc"
 )
+
+var C pb.TwittServiceClient
 
 func validate(w http.ResponseWriter, r *http.Request, flag bool) string {
 	username, e := r.Cookie("username")
@@ -36,7 +38,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		reply, err := c.SignUp(ctx, &pb.InfoRequest{Username: username, Password: password})
+		reply, err := C.SignUp(ctx, &pb.InfoRequest{Username: username, Password: password})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
@@ -61,7 +63,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		reply, err := c.Login(ctx, &pb.InfoRequest{Username: username, Password:password})
+		reply, err := C.Login(ctx, &pb.InfoRequest{Username: username, Password:password})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
@@ -103,7 +105,7 @@ func Posting(w http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		reply, err := c.Posting(ctx, &pb.PostRequest{Post: post})
+		reply, err := C.Posting(ctx, &pb.PostRequest{Post: post})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
@@ -122,7 +124,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	reply, err := c.View(ctx, &pb.InfoRequest{Username:username})
+	reply, err := C.View(ctx, &pb.InfoRequest{Username:username})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
@@ -144,7 +146,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		reply, err := c.GetList(ctx, &pb.InfoRequest{Username:username, Instruct:"Follow"})
+		reply, err := C.GetList(ctx, &pb.InfoRequest{Username:username, Instruct:"Follow"})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
@@ -157,7 +159,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		reply, err := c.Follow(ctx, &pb.FollowingRequest{Username:username, Following:target})
+		reply, err := C.Follow(ctx, &pb.FollowingRequest{Username:username, Following:target})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
@@ -177,7 +179,7 @@ func UnFollow(w http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		reply, err := c.GetList(ctx, &pb.InfoRequest{Username:username, Instruct:"UnFollow"})
+		reply, err := C.GetList(ctx, &pb.InfoRequest{Username:username, Instruct:"UnFollow"})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
@@ -190,7 +192,7 @@ func UnFollow(w http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		reply, err := c.UnFollow(ctx, &pb.FollowingRequest{Username:username, Following:target})
+		reply, err := C.UnFollow(ctx, &pb.FollowingRequest{Username:username, Following:target})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
