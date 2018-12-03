@@ -112,6 +112,8 @@ func Posting(w http.ResponseWriter, r *http.Request) {
 
 		if reply.Success {
 			http.Redirect(w, r, "/view", 302)
+		} else {
+			http.Redirect(w, r, "/post", 302)
 		}
 	}
 }

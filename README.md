@@ -1,18 +1,27 @@
-# Stage One:
+# Stage Two:
 ```sh
-$ go build #compile the project.  
-$ go test #do the unit test.  
-$ ./twitt #run the program.  
-```
-http://localhost:8080/ is the URL for twitt webpage.  
+twitt/server
+$ go test #do the unit test.
+$ go build #compile the server.
+$ ./server #keep data server run.
 
-Structure:  
-- "/signup" Sign up here ane alert if the username already exists.  
+twitt/web
+$ go test #do the unit test.
+$ go build #compile the web.
+$ ./web #start webpage service.
+```
+http://localhost:8080/ Access twitt here and the data is stored in backend so that the web service is stateless. Keep data server running to ensure the communication.  
+
+URL:
+- "/signup" Sign up here and alert if username already exists.
 - "/login"  Log in here.
 - "/post"  Post twitter here.
 - "/view"  View the followings' and own posts.
-- "/follow"  Explore all non-folllowed users and make the folllowing. 
+- "/follow"  Explore all non-folllowed users and make the folllowing.
 - "/unfollow"  Un-follow any current following users.
-- "/logout"  Log out and clean the cookies.  
+- "/logout"  Log out and clean the cookies.
 
-All the data is stored in global variable uList here. Since every function is very simple, they are all combined in one file and handled by main function.
+Structure:  
+- twitt/pkg -- All the implementations are here for the reuse purpose.  
+- twitt/web -- Web side main function.  
+- twitt/server -- Server side main function.  

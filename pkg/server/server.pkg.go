@@ -56,7 +56,7 @@ func (s *Server) Login(ctx context.Context, in *pb.InfoRequest) (*pb.SuccessRepl
 
 func (s *Server) Posting(ctx context.Context, in *pb.PostRequest) (*pb.SuccessReply, error) {
 	client := UList[in.Post.Username]
-	if client == nil {
+	if in.Post.Content == "" || client == nil {
 		return &pb.SuccessReply{Success: false}, nil
 	}
 	client.Posts = append(client.Posts, in.Post)

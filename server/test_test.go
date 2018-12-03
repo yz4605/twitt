@@ -3,17 +3,18 @@ package main
 import (
     "context"
     "fmt"
-    "reflect"
-    "testing"
-    "time"
     "github.com/golang/mock/gomock"
     "github.com/golang/protobuf/proto"
+    "sort"
+    "testing"
+    "time"
     twittmock "twitt/pkg/mock"
     "twitt/pkg/rpc"
-    server "twitt/pkg/server"
+    "twitt/pkg/server"
 )
 
-var s = server.Server{} 
+
+var s = server.Server{}
 
 // rpcMsg implements the gomock.Matcher interface
 type rpcMsg struct {
@@ -30,6 +31,20 @@ func (r *rpcMsg) Matches(msg interface{}) bool {
 
 func (r *rpcMsg) String() string {
     return fmt.Sprintf("is %s", r.msg)
+}
+
+// Implement sort.Interface for []*pb.Post.
+type postSlice []*pb.Post
+
+func (s postSlice) Len() int { return len(s) }
+
+func (s postSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+func (s postSlice) Less(i, j int) bool {
+    if s[i].Username != s[j].Username {
+        return s[i].Username < s[j].Username
+    }
+    return s[i].Content < s[j].Content
 }
 
 func TestSignUp(t *testing.T) {
@@ -128,7 +143,7 @@ func TestLogin(t *testing.T) {
             password: "error",
             success: false,
         },
-        // Log in with correct username and password. 
+        // Log in with correct username and password.
         {
             username: "test1",
             password: "123",
@@ -322,7 +337,7 @@ func TestUnFollow(t *testing.T) {
             username: "test3",
             following: "test2",
             success: false,
-        }, 
+        },
         // non-existing user unfollow test1.
         {
             username: "error",
@@ -393,7 +408,7 @@ func TestGetList(t *testing.T) {
             instruct: "UnFollow",
             success: true,
             list: list2,
-        }, 
+        },
         // instruct is incorrect.
         {
             username: "test2",
@@ -419,10 +434,39 @@ func TestGetList(t *testing.T) {
         if resp.Success != testcase.success {
             t.Errorf("GetList(%v) got: %v wanted: %v", testcase.username, resp.Success, testcase.success)
         }
-        if !reflect.DeepEqual(resp.List, testcase.list) {
+        if !stringSliceEqual(resp.List, testcase.list) {
             t.Errorf("GetList(%v) list is not correct", testcase.username)
+            for _, p := range resp.List {
+                t.Errorf("resp.List: %v", p)
+            }
+            for _, q := range testcase.list {
+                t.Errorf("testcase.list: %v", q)
+            }
         }
     }
+}
+
+func stringSliceEqual(a, b []string) bool {
+    if len(a) != len(b) {
+        fmt.Printf("a: %v b: %v", len(a), len(b))
+        return false
+    }
+
+    if (a == nil) != (b == nil) {
+        return false
+    }
+
+    sort.Strings(a)
+    sort.Strings(b)
+
+    for i, v := range a {
+        if v != b[i] {
+            fmt.Printf("v: %v b[i]: %v", v, b[i])
+            return false
+        }
+    }
+
+    return true
 }
 
 func testGetList(t *testing.T, client pb.TwittServiceClient) {
@@ -441,7 +485,7 @@ func TestView(t *testing.T) {
     defer ctrl.Finish()
     mockTwittServiceClient := twittmock.NewMockTwittServiceClient(ctrl)
     req := &pb.InfoRequest{Username: "test1"}
-    posts := make([]*pb.Post, 0)
+    posts := make(postSlice, 0)
     post := &pb.Post{Username: "test1", Content: "Wonderful"}
     posts = append(posts, post)
     mockTwittServiceClient.EXPECT().View(
@@ -453,9 +497,9 @@ func TestView(t *testing.T) {
     // Set up concrete test cases.
     post1 := &pb.Post{Username: "test1", Content: "Wonderful"}
     post2 := &pb.Post{Username: "test3", Content: "Thank you"}
-    posts1 := make([]*pb.Post, 0)
-    posts2 := make([]*pb.Post, 0)
-    posts3 := make([]*pb.Post, 0)
+    posts1 := make(postSlice, 0)
+    posts2 := make(postSlice, 0)
+    posts3 := make(postSlice, 0)
     posts1 = append(posts1, post1)
     posts2 = append(posts2, post1)
     posts3 = append(posts3, post1)
@@ -463,7 +507,7 @@ func TestView(t *testing.T) {
     // test2 and test3 both follow test1.
     testcases := []struct{
         username string
-        posts []*pb.Post
+        posts postSlice
         success bool
     } {
         {
@@ -475,7 +519,7 @@ func TestView(t *testing.T) {
             username: "test2",
             posts: posts2,
             success: true,
-        }, 
+        },
         {
             username: "test3",
             posts: posts3,
@@ -497,10 +541,31 @@ func TestView(t *testing.T) {
         if resp.Success != testcase.success {
             t.Errorf("View(%v) got: %v wanted: %v", testcase.username, resp.Success, testcase.success)
         }
-        if !reflect.DeepEqual(resp.Posts, testcase.posts) {
-            t.Errorf("GetList(%v) posts is not correct", testcase.username)
+        if !postSliceEqual(resp.Posts, testcase.posts) {
+            t.Errorf("View(%v) post list is not correct", testcase.username)
         }
     }
+}
+
+func postSliceEqual(a, b postSlice) bool {
+    if len(a) != len(b) {
+        return false
+    }
+
+    if (a == nil) != (b == nil) {
+        return false
+    }
+
+    sort.Stable(a)
+    sort.Stable(b)
+
+    for i, v := range a {
+        if v.Username != b[i].Username || v.Content != b[i].Content {
+            return false
+        }
+    }
+
+    return true
 }
 
 func testView(t *testing.T, client pb.TwittServiceClient) {
