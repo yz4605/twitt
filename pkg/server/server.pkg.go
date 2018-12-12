@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"go.etcd.io/etcd/raft/raftpb"
 	"twitt/pkg/rpc"
 	"context"
 )
@@ -15,6 +16,9 @@ type User struct {
 }
 
 var UList map[string]*User
+var kvs *kvstore
+var conf chan raftpb.ConfChange
+var err <-chan error
 
 type Server struct{}
 
