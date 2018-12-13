@@ -5,6 +5,8 @@ import (
     "fmt"
     "github.com/golang/mock/gomock"
     "github.com/golang/protobuf/proto"
+    "go.etcd.io/etcd/raft/raftpb"
+    "os"
     "sort"
     "testing"
     "time"
@@ -21,6 +23,17 @@ type rpcMsg struct {
     msg proto.Message
 }
 
+type postSlice []*pb.Post
+
+func init() {
+    cluster := "http://127.0.0.1:9001"
+    id := 1
+    join := false
+    proposeC := make(chan string)
+    confChangeC := make(chan raftpb.ConfChange)
+    server.Start(&cluster, &id, &join, proposeC, confChangeC)
+}
+
 func (r *rpcMsg) Matches(msg interface{}) bool {
     m, ok := msg.(proto.Message)
     if !ok {
@@ -31,20 +44,6 @@ func (r *rpcMsg) Matches(msg interface{}) bool {
 
 func (r *rpcMsg) String() string {
     return fmt.Sprintf("is %s", r.msg)
-}
-
-// Implement sort.Interface for []*pb.Post.
-type postSlice []*pb.Post
-
-func (s postSlice) Len() int { return len(s) }
-
-func (s postSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-
-func (s postSlice) Less(i, j int) bool {
-    if s[i].Username != s[j].Username {
-        return s[i].Username < s[j].Username
-    }
-    return s[i].Content < s[j].Content
 }
 
 func TestSignUp(t *testing.T) {
@@ -97,8 +96,9 @@ func TestSignUp(t *testing.T) {
         if err != nil {
             t.Errorf("TestSignUp got unexpected error")
         }
+        time.Sleep(100 * time.Millisecond)
         if resp.Success != testcase.success {
-            t.Errorf("SignUp(%v) got: %v wanted: %v", testcase.username, resp.Success, testcase.success)
+            t.Errorf("SignUp(%v %v) got: %v wanted: %v", testcase.username, testcase.password, resp.Success, testcase.success)
         }
     }
 }
@@ -292,6 +292,7 @@ func TestFollow(t *testing.T) {
         if err != nil {
             t.Errorf("TestFollow got unexpected error")
         }
+        time.Sleep(100 * time.Millisecond)
         if resp.Success != testcase.success {
             t.Errorf("Follow(%v) got: %v wanted: %v", testcase.username, resp.Success, testcase.success)
         }
@@ -326,7 +327,7 @@ func TestUnFollow(t *testing.T) {
         following string
         success bool
     } {
-        // test2 follow test3 when test3 is following test3.
+        // test2 unfollow test3 when test2 is following test3.
         {
             username: "test2",
             following: "test3",
@@ -352,6 +353,7 @@ func TestUnFollow(t *testing.T) {
         if err != nil {
             t.Errorf("TestUnFollow got unexpected error")
         }
+        time.Sleep(100 * time.Millisecond)
         if resp.Success != testcase.success {
             t.Errorf("UnFollow(%v) got: %v wanted: %v", testcase.username, resp.Success, testcase.success)
         }
@@ -434,6 +436,7 @@ func TestGetList(t *testing.T) {
         if resp.Success != testcase.success {
             t.Errorf("GetList(%v) got: %v wanted: %v", testcase.username, resp.Success, testcase.success)
         }
+        time.Sleep(100 * time.Millisecond)
         if !stringSliceEqual(resp.List, testcase.list) {
             t.Errorf("GetList(%v) list is not correct", testcase.username)
             for _, p := range resp.List {
@@ -543,6 +546,13 @@ func TestView(t *testing.T) {
         }
         if !postSliceEqual(resp.Posts, testcase.posts) {
             t.Errorf("View(%v) post list is not correct", testcase.username)
+            t.Errorf("len1: %v len2: %v", len(resp.Posts), len(testcase.posts))
+            for _, p := range resp.Posts {
+                t.Errorf("resp.Posts: %v", p.Username)
+            }
+            for _, q := range testcase.posts {
+                t.Errorf("testcase.posts: %v", q.Username)
+            }
         }
     }
 }
@@ -555,9 +565,6 @@ func postSliceEqual(a, b postSlice) bool {
     if (a == nil) != (b == nil) {
         return false
     }
-
-    sort.Stable(a)
-    sort.Stable(b)
 
     for i, v := range a {
         if v.Username != b[i].Username || v.Content != b[i].Content {
@@ -576,4 +583,9 @@ func testView(t *testing.T, client pb.TwittServiceClient) {
         t.Errorf("mocking failed")
     }
     t.Log("Reply : ", r.Success)
+}
+
+func TestClose(t *testing.T) {
+    os.RemoveAll(fmt.Sprintf("storage/raft-%d", 1))
+    os.RemoveAll(fmt.Sprintf("storage/raft-%d-snap", 1))
 }

@@ -39,6 +39,13 @@ func (s *kvstore) Lookup(key string) (string, bool) {
 	return v, ok
 }
 
+func (s *kvstore) LookupAll() (map[string]string) {
+	s.mu.RLock()
+	v := s.kvStore
+	s.mu.RUnlock()
+	return v
+}
+
 func (s *kvstore) Propose(k string, v string) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(kv{k, v}); err != nil {
