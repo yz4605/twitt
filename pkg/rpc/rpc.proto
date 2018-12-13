@@ -10,6 +10,7 @@ service TwittService {
     rpc GetList (InfoRequest) returns (ListReply) {}
     rpc Follow (FollowingRequest) returns (SuccessReply) {}
     rpc UnFollow (FollowingRequest) returns (SuccessReply) {}
+    rpc Config (ConfigRequest) returns (SuccessReply) {}
 }
 
 message InfoRequest {
@@ -31,6 +32,12 @@ message PostRequest {
 message FollowingRequest {
     string username = 1;
     string following = 2;
+}
+
+message ConfigRequest {
+    string id = 1;
+    string url = 2;
+    string instruct = 3;
 }
 
 message SuccessReply {

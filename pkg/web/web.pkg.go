@@ -2,10 +2,12 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 	"twitt/pkg/rpc"
 )
@@ -109,7 +111,7 @@ func Posting(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
-
+		time.Sleep(100*time.Millisecond)
 		if reply.Success {
 			http.Redirect(w, r, "/view", 302)
 		} else {
@@ -202,5 +204,28 @@ func UnFollow(w http.ResponseWriter, r *http.Request) {
 		if !reply.Success {
 			log.Print("UnFollow Error")
 		}
+	}
+}
+
+func Config(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		buf, _ := ioutil.ReadAll(r.Body)
+		data := strings.Split(string(buf), "=")
+		if len(data) != 3 {
+			fmt.Fprintln(w, "Args Number Wrong")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		reply, err := C.Config(ctx, &pb.ConfigRequest{Id:data[0], Url:data[1], Instruct:data[2]})
+		if err != nil {
+			log.Fatalf("could not greet: %v", err)
+		}
+		if reply.Success{
+			fmt.Fprintln(w, "Success")
+		} else {
+			fmt.Fprintln(w, "Fail")
+		}
+	} else {
+		fmt.Fprintln(w, "No Access")
 	}
 }

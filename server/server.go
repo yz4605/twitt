@@ -12,10 +12,10 @@ import (
 )
 
 func main() {
-	cluster := flag.String("cluster", "http://127.0.0.1:9021", "comma separated cluster peers")
+	cluster := flag.String("cluster", "http://127.0.0.1:9001", "comma separated cluster peers")
 	id := flag.Int("id", 1, "node ID")
 	join := flag.Bool("join", false, "join an existing cluster")
-	port := flag.String("port", ":2233", ":port for grpc")
+	port := flag.String("port", "2233", "port for grpc")
 	flag.Parse()
 
 	proposeC := make(chan string)
@@ -24,7 +24,7 @@ func main() {
 	defer close(confChangeC)
 	server.Start(cluster,id,join,proposeC,confChangeC)
 
-	lis, err := net.Listen("tcp", *port)
+	lis, err := net.Listen("tcp", ":"+*port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

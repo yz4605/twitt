@@ -8,6 +8,7 @@ import (
 	"go.etcd.io/etcd/raft/raftpb"
 	"log"
 	"sort"
+	"strconv"
 	"twitt/pkg/rpc"
 	"context"
 )
@@ -236,4 +237,25 @@ func (s *Server) UnFollow(ctx context.Context, in *pb.FollowingRequest) (*pb.Suc
 	} else {
 		return &pb.SuccessReply{Success: false}, nil
 	}
+}
+
+func (s *Server) Config(ctx context.Context, in *pb.ConfigRequest) (*pb.SuccessReply, error) {
+	nodeID,_ := strconv.ParseUint(in.Id, 0, 64)
+	if in.Instruct == "add" {
+		cc := raftpb.ConfChange{
+			Type:    raftpb.ConfChangeAddNode,
+			NodeID:  nodeID,
+			Context: []byte(in.Url),
+		}
+		conf <- cc
+	} else if in.Instruct == "remove"{
+		cc := raftpb.ConfChange{
+			Type:   raftpb.ConfChangeRemoveNode,
+			NodeID: nodeID,
+		}
+		conf <- cc
+	} else {
+		return &pb.SuccessReply{Success: false}, nil
+	}
+	return &pb.SuccessReply{Success: true}, nil
 }

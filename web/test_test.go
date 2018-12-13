@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 	"twitt/pkg/rpc"
 	"twitt/pkg/web"
 )
@@ -27,6 +28,7 @@ func sendPost(url string, reader io.Reader, fn func(w http.ResponseWriter, r *ht
 	if rr.Header()["Set-Cookie"] != nil {
 		cookie = rr.Header()["Set-Cookie"]
 	}
+	time.Sleep(100*time.Millisecond)
 }
 
 func sendGet(url string, fn func(w http.ResponseWriter, r *http.Request), t *testing.T) {

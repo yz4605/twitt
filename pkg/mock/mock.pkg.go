@@ -35,6 +35,24 @@ func (m *MockTwittServiceClient) EXPECT() *MockTwittServiceClientMockRecorder {
 	return m.recorder
 }
 
+// Config mocks base method
+func (m *MockTwittServiceClient) Config(arg0 context.Context, arg1 *rpc.ConfigRequest, arg2 ...grpc.CallOption) (*rpc.SuccessReply, error) {
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Config", varargs...)
+	ret0, _ := ret[0].(*rpc.SuccessReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Config indicates an expected call of Config
+func (mr *MockTwittServiceClientMockRecorder) Config(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Config", reflect.TypeOf((*MockTwittServiceClient)(nil).Config), varargs...)
+}
+
 // Follow mocks base method
 func (m *MockTwittServiceClient) Follow(arg0 context.Context, arg1 *rpc.FollowingRequest, arg2 ...grpc.CallOption) (*rpc.SuccessReply, error) {
 	varargs := []interface{}{arg0, arg1}

@@ -19,5 +19,6 @@ func main() {
 	http.HandleFunc("/follow", web.Follow)
 	http.HandleFunc("/unfollow", web.UnFollow)
 	http.HandleFunc("/logout", web.Logout)
+	http.HandleFunc("/config", web.Config)
 	http.ListenAndServe(":8080", nil)
 }
