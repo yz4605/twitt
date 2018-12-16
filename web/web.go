@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"google.golang.org/grpc"
 	"net/http"
 	"twitt/pkg/rpc"
@@ -8,7 +9,9 @@ import (
 )
 
 func main() {
-	conn, _ := grpc.Dial("localhost:2233", grpc.WithInsecure())
+	port := flag.String("port", "2233", "port for grpc")
+	flag.Parse()
+	conn, _ := grpc.Dial("localhost:"+*port, grpc.WithInsecure())
 	defer conn.Close()
 	web.C = pb.NewTwittServiceClient(conn)
 	http.HandleFunc("/", web.View)
